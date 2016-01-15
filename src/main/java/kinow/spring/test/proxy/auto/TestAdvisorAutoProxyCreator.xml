@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.1.xsd">
+	
+	<import resource="classpath:/kinow/spring/test/ApplicationContext.xml"/>
+	
+	<!-- Advice -->
+	<bean id="transactionAdvice" class="kinow.spring.test.proxy.advice.TransactionAdvice">
+		<property name="transactionManager" ref="transactionManager" />
+	</bean>
+
+	
+	<!-- import Transaction AOP -->
+	<!-- <import resource="TransactionAdvisor.xml"/> -->
+	<import resource="TransactionAOP.xml"/>
+	
+	<bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator" />
+	
+	<bean id="userService" class="kinow.spring.test.service.UserServiceImpl">
+		<property name="userDao" ref="userDao" />
+		<property name="mailSender" ref="mailSender" />
+	</bean>
+	
+	<bean id="testUserService" 
+		class="kinow.spring.test.proxy.auto.TestAdvisorAutoProxyCreator$TestUserService"
+		parent="userService" />
+
+
+
+<!--  
+	<bean id="aspecExp1" class="kinow.spring.test.proxy.auto.TestAspectJExp">
+		<property name="exp" value="1"/>
+		<property name="matched" value="true" />
+	</bean>	
+	<bean id="testAspectJExps" class="org.springframework.beans.factory.config.ListFactoryBean">
+		<property name="sourceList">
+			<list value-type="kinow.spring.test.proxy.auto.TestAspectJExp">
+				<ref bean="aspecExp1"/>
+				<ref bean="aspecExp2"/>
+				<ref bean="aspecExp3"/>
+				<ref bean="aspecExp4"/>
+				<ref bean="aspecExp5"/>
+			</list>
+		</property>
+	</bean>
+-->
+</beans>
