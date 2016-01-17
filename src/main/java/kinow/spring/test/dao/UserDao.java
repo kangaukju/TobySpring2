@@ -12,4 +12,5 @@ public interface UserDao {
 	public List<User> getAll();
 	public void update(User user);
 	public void deleteAll();
+	public void hitPlus(String id);
 }

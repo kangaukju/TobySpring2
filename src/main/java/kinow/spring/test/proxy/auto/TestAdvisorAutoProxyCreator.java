@@ -1,7 +1,7 @@
 package kinow.spring.test.proxy.auto;
 
 
-import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -15,8 +15,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.aop.aspectj.AspectJExpressionPointcut;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.TransientDataAccessResourceException;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import kinow.spring.test.dao.UserDao;
 import kinow.spring.test.exception.TestUserServiceException;
@@ -24,6 +31,8 @@ import kinow.spring.test.pointcut.Bean;
 import kinow.spring.test.pointcut.Target;
 
 import static kinow.spring.test.service.UserService.*;
+
+import kinow.spring.test.service.EventService;
 import kinow.spring.test.service.UserService;
 import kinow.spring.test.service.UserServiceImpl;
 import kinow.spring.test.user.Level;
@@ -37,6 +46,100 @@ public class TestAdvisorAutoProxyCreator {
 	@Autowired UserDao userDao;
 	@Autowired UserService userService;
 	@Autowired UserService testUserService;
+	@Autowired UserService testAddUserService;
+	@Autowired EventService eventService;
+	@Autowired PlatformTransactionManager transactionManager;
+		
+	
+	@Test
+	public void transactionSync2() {
+		userDao.deleteAll();
+		assertThat(userDao.getCount(), is(0));
+		
+		DefaultTransactionDefinition txDefinition 
+			= new DefaultTransactionDefinition();
+		
+		TransactionStatus status = transactionManager
+				.getTransaction(txDefinition);
+		
+		userService.add(users.get(0));
+		userService.add(users.get(1));
+		assertThat(userDao.getCount(), is(2));
+		
+		transactionManager.rollback(status);
+		assertThat(userDao.getCount(), is(0));
+	}
+
+	@Test
+	public void transactionSync() {
+		DefaultTransactionDefinition txDefinition 
+			= new DefaultTransactionDefinition();
+		txDefinition.setReadOnly(true);
+
+		TransactionStatus status = transactionManager
+				.getTransaction(txDefinition);
+		
+		try {
+			userService.delelteAll();
+			userService.add(users.get(0));
+			userService.add(users.get(1));
+			
+			transactionManager.commit(status);
+		} catch (Exception e) {
+			transactionManager.rollback(status);
+		} finally {
+			txDefinition.setReadOnly(false);
+		}
+	}
+	
+	
+	@Test
+	public void transactionPropagationRequireTest() {
+		
+		try {
+			eventService.processDailyEventRegistration(users);
+		} catch (Exception e) {
+			
+		}
+		
+		assertThat(userService.getAll().size(), is(0));
+	}
+	static class TestAddUserService extends UserServiceImpl {
+		private String id = "kinow3";
+		
+		@Override
+		public void add(User user) {
+			if (user.getId().equals(id)) {
+				throw new TestUserServiceException();
+			}
+			super.add(user);
+		}
+		
+	}
+	
+	@Test(expected=TransientDataAccessResourceException.class)
+	public void readOnluTransactionAttribute() {
+		for (User user : users) {
+			userDao.add(user);
+		}
+		
+		testUserService.getAll();
+	}
+	
+	@Test
+	public void violateTransactionTest() {
+		for (User user : users) {
+			userDao.add(user);
+		}
+		
+		try {
+			User user = userService.get("kinow2");
+			fail("DataAccessException!! Error update data while read data");
+		}
+		catch (Exception e) {
+			
+		}
+	}
 	
 /*	
 	@Autowired List<TestAspectJExp> testAspectJExps;
@@ -69,7 +172,7 @@ public class TestAdvisorAutoProxyCreator {
 	}
 */
 	
-	@Test
+//	@Test
 	public void classView() throws NoSuchMethodException, SecurityException {
 		System.out.println(Target.class.getMethod("minus", int.class, int.class));
 	}
@@ -123,9 +226,13 @@ public class TestAdvisorAutoProxyCreator {
 			testUserService.upgradeLevels();
 			fail("TestUserServiceException expected...");
 		} catch(Exception e) {
+			//e.printStackTrace();
 		}
 		
+		checkLevelUpgrade(users.get(0), false);
 		checkLevelUpgrade(users.get(1), false);
+		checkLevelUpgrade(users.get(2), false);
+		checkLevelUpgrade(users.get(3), false);
 	}
 	static class TestUserService extends UserServiceImpl {
 		private String id = "kinow3";
@@ -136,6 +243,32 @@ public class TestAdvisorAutoProxyCreator {
 			}
 			super.upgradeLevel(user);
 		}
+		
+		@Override
+		public List<User> getAll() {
+			for (User user : super.getAll()) {
+				super.update(user);
+			}
+			return null;
+		}
+	}
+	
+	@Test
+	public void testUpgrade() {
+		for (User user : users) {
+			userDao.add(user);
+		}
+		
+		try {
+			userService.upgradeLevels();
+		} catch(Exception e) {
+			fail("UserServiceException expected...");
+		}
+		
+		checkLevelUpgrade(users.get(0), false);
+		checkLevelUpgrade(users.get(1), true);
+		checkLevelUpgrade(users.get(2), false);
+		checkLevelUpgrade(users.get(3), true);
 	}
 	
 	
@@ -157,5 +290,18 @@ public class TestAdvisorAutoProxyCreator {
 		} else {
 			assertThat(userUpdate.getLevel(), is(user.getLevel()));
 		}
+	}
+	
+	
+//	@Test
+	@Transactional
+	@Rollback(false)
+	public void transactionSync3() {
+		testAddUserService.delelteAll();
+		
+		testAddUserService.add(users.get(0));
+		testAddUserService.add(users.get(3));
+		testAddUserService.add(users.get(1));
+		testAddUserService.add(users.get(2));
 	}
 }

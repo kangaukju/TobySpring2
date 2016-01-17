@@ -6,8 +6,15 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<aop:config>
+		<!-- 
 		<aop:advisor 	advice-ref="transactionAdvice" 
 						pointcut="execution(* *..*ServiceImpl.upgrade*(..))"/>
+		<aop:advisor 	advice-ref="transactionAdvice"
+						pointcut="execution(* *..*ServiceImpl.get*(..))"/>
+		-->
+		<!-- 아이디가 Service로 끝나는 모든 빈에 transactionAdvice 빈의 부가기능이 적용 -->
+		<aop:advisor 	advice-ref="transactionAdvice"
+						pointcut="bean(*Service)" />
 	</aop:config>
 
 </beans>

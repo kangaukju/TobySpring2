@@ -17,7 +17,8 @@
 	</bean>
 	
 	<!-- Advisor -->
-	<bean id="transactionAdvisor" class="org.springframework.aop.support.DefaultPointcutAdvisor">
+	<bean 	id="transactionAdvisor" 
+			class="org.springframework.aop.support.DefaultPointcutAdvisor">
 		<property name="advice" ref="transactionAdvice" />
 		<property name="pointcut" ref="transactionPointcutAspecJ" />
 	</bean>

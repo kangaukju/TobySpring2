@@ -7,15 +7,23 @@
 	
 	<import resource="classpath:/kinow/spring/test/ApplicationContext.xml"/>
 	
+	<!-- DAO -->
+	<import resource="SqlQuery.xml"/>
+	
 	<!-- Advice -->
-	<bean id="transactionAdvice" class="kinow.spring.test.proxy.advice.TransactionAdvice">
+	<!--  
+	<bean 	id="transactionAdvice" 
+			class="kinow.spring.test.proxy.advice.TransactionAdvice">
 		<property name="transactionManager" ref="transactionManager" />
 	</bean>
-
+	-->
+	<!-- <import resource="TransactionInterceptor.xml" /> -->
+	<!-- <import resource="TxTransaction.xml" /> -->
+	<import resource="TxAnnotation.xml"/>
 	
 	<!-- import Transaction AOP -->
 	<!-- <import resource="TransactionAdvisor.xml"/> -->
-	<import resource="TransactionAOP.xml"/>
+	<!-- <import resource="TransactionAOP.xml"/> -->
 	
 	<bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator" />
 	
@@ -25,11 +33,17 @@
 	</bean>
 	
 	<bean id="testUserService" 
-		class="kinow.spring.test.proxy.auto.TestAdvisorAutoProxyCreator$TestUserService"
-		parent="userService" />
+		class="kinow.spring.test.proxy.auto.TestAdvisorAutoProxyCreator$TestUserService" 
+		parent="userService"/>
 
-
-
+	<bean id="eventService" class="kinow.spring.test.service.EventServiceImpl">
+		<property name="userService" ref="testAddUserService" />
+	</bean>
+	<bean id="testAddUserService" 
+		class="kinow.spring.test.proxy.auto.TestAdvisorAutoProxyCreator$TestAddUserService" 
+		parent="userService"/>
+	
+	
 <!--  
 	<bean id="aspecExp1" class="kinow.spring.test.proxy.auto.TestAspectJExp">
 		<property name="exp" value="1"/>

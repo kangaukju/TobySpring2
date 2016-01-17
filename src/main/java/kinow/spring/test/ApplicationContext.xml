@@ -9,9 +9,6 @@
 		<property name="username" value="kinow" />
 		<property name="password" value="830421" />
 	</bean>
-	<bean id="userDao" class="kinow.spring.test.dao.UserDaoJdbc">
-		 <property name="dataSource" ref="localDataSource"/>
-	</bean>
 	<bean id="mailSender" class="kinow.spring.test.service.MockMailServer" />
 	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
 		<property name="dataSource" ref="localDataSource" />

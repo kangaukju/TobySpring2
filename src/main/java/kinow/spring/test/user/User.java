@@ -8,7 +8,16 @@ public class User {
 	int login;
 	int recommend;
 	String email;
+	long hit;
 	
+	public long getHit() {
+		return hit;
+	}
+
+	public void setHit(long hit) {
+		this.hit = hit;
+	}
+
 	public String getEmail() {
 		return email;
 	}
@@ -62,11 +71,13 @@ public class User {
 	public void setPassword(String password) {
 		this.password = password;
 	}
+	
 	@Override
 	public String toString() {
 		return "User [id=" + id + ", name=" + name + ", password=" + password + ", level=" + level + ", login=" + login
-				+ ", recommend=" + recommend + "]";
+				+ ", recommend=" + recommend + ", email=" + email + ", hit=" + hit + "]";
 	}
+
 	public User() {
 		
 	}
@@ -80,6 +91,19 @@ public class User {
 		this.login = login;
 		this.recommend = recommend;
 		this.email = email;
+	}
+
+	public User(String id, String name, String password, Level level, int login, int recommend, String email,
+			long hit) {
+		super();
+		this.id = id;
+		this.name = name;
+		this.password = password;
+		this.level = level;
+		this.login = login;
+		this.recommend = recommend;
+		this.email = email;
+		this.hit = hit;
 	}
 	
 }

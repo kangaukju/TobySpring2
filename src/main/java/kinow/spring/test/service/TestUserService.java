@@ -1,5 +1,7 @@
 package kinow.spring.test.service;
 
+import java.util.List;
+
 import kinow.spring.test.exception.TestUserServiceException;
 import kinow.spring.test.user.User;
 
@@ -17,5 +19,4 @@ public class TestUserService extends UserServiceImpl {
 		}
 		super.upgradeLevel(user);
 	}
-
 }
